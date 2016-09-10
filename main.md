@@ -1,5 +1,7 @@
 # Team 1 Task Diagram
 
+![Image](image.png)
+
 - API Modules
   - `Debug`
     - Outputs to debug pins to communicate asynchronously without blocking.
