@@ -1,0 +1,69 @@
+# Team 1 Task Diagram
+
+- API Modules
+  - `Debug`
+    - Outputs to debug pins to communicate asynchronously without blocking.
+  - `JSON Serialize`
+    - Serializes various structs into bytes that can be sent over the network.
+  - `JSON Deserialize`
+    - Deserializes network bytes into their respective structs.
+  - `Pathfinding`
+    - Takes weighted block grid and finds the lowest difficulty path to the target.
+  - `Geometry`
+    - Manages the world view held by the robot.
+    - Can take local readings to approximate world location.
+    - Can map known geometry of world onto grid for pathfinding.
+    - Can take new data and make predictions of the world and position with probability based on data.
+  - `Ultrasound`
+    - Process continuous ultrasound data into probability-based world-view.
+  - `Edge`
+    - Use the photodetector to identify the boundaries of the arena based on past and current photodetector data.
+- Tasks
+  - `Sound`
+    - Is told which sound samples to play.
+    - Conveys sound sample information to interrupt to fill sound buffer.
+  - `Processing`
+    - Processes sensor data.
+    - Aquires sonar
+  - `Processing Grabber`
+    - Replaces `Processing` on grabber and only processes picking up information from `Grabber Rx`.
+  - `Movement`
+    - Receives movement commands based on pathfinding information from the `Data Processing` module via `Network Recv`.
+    - Attempts to fulfil movement requests and periodically sends back a timestamp and movement information and probabilities to `Data Processing` via `Network Send`.
+  - `Network Send Processing/Movement`
+    - Receives binary format messages from modules to be encoded as JSON and sent to the `Wifly Send` module.
+    - Uses `JSON Serialize` API to serialize messages to be sent.
+  - `Network Recv Processing/Movement`
+    - Receives JSON encoded messages from `Wifly Recv` and decodes them into binary before forwarding them to their respective location.
+    - Uses `JSON Deserialize` API to serialize messages to be sent.
+  - `Wifly Send Processing/Movement`
+    - Receives JSON messages along with reliability requirements.
+    - Tracks the reliability and ordering requirements of messages so they are sent as intended, adding in some extra JSON data.
+  - `Wifly Recv Processing/Movement`
+    - Receives JSON encoded messages and decodes only reliability information, passing the JSON back to `Network Recv` depending on reliability requirements.
+    - Tracks the reliability and ordering requirements of messages so they are received as intended, adding in some extra JSON data.
+- Interrupts
+  - `Wifly Rx Processing/Movement`
+    - Receives bytes from **Wifly** and forwards them to `Network Recv Processing/Movement`.
+  - `Wifly Tx Processing/Movement`
+    - Receives bytes from `Network Send Processing/Movement` and sends them to the **Wifly**.
+  - `Wheel Rx`
+    - Gets approximate location information back from the wheels and sends it to `Movement`.
+  - `Wheel Tx`
+    - Gets wheel commands from `Movement` and controlls wheels.
+  - `Ultrasound Rx`
+    - Gets inputs from ultrasound, formats them appropriately, and sends them to `Processing`.
+  - `Ultrasound Tx`
+    - Gets ultrasound control commands from the `Processing` module and properly drives the ultrasound.
+  - `Photodetector Rx`
+    - Gets pixel data from photodetector sensors and forwards it to `Processing`.
+  - `Photodetector Tx`
+    - Sends commands to photodetector sensor from `Processing` to control its operation.
+  - `Servo Tx`
+    - Receives rotation requirements from `Processing` and forwars them to the servo.
+  - `Grabber Rx`
+    - Receives grabber data from whatever sensors.
+  - `Grabber Tx`
+    - Sends grabber commands from `Processing Grabber`.
+  - `Sound Tx`
+    - Sends bytes from sound buffer to sound module from `Sound` task.
